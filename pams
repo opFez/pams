@@ -1,0 +1,91 @@
+#!/bin/sh
+
+# pams - the posix aur management script
+# simple script for interacting with the aur
+# options:
+#   -S              - synchronize list of aur packages. requires root.
+#   -a pkg_name     - audit a specific package's pkgbuild.
+#   -d pkg_name     - downloads a specific package from the aur to $aur.
+#   -i pkg_name     - install downloaded packages using the 'makepkg -si' command.
+#   -r pkg_name     - removes package from the ~/aur directory
+#   -s search_term  - list packages with the search team in the title.
+
+
+# error messages
+
+err_usage() {
+    echo "usage: [-S | -a pkg_name | -d pkg_name | -i pkg_name | -r pkg_name | -s search_term]"
+    exit 1
+}
+
+err_add_args() {
+    echo "this flag requires an additional argument"
+    exit 1
+}
+
+
+# main program
+
+if [ $# = 0 ]; then
+    err_usage
+else
+    aur="$HOME/aur"
+    case "$1" in
+            
+    -S)     if [ $EUID = 0 ]; then
+                curl https://aur.archlinux.org/packages.gz \
+                --silent --output - \
+                | gunzip > /etc/aurlist
+            else
+                echo "please run as root"
+                exit 1
+            fi
+            ;;
+
+    -a)     if [ $# -ne 2 ]; then
+                err_add_args
+            else
+                less $aur/$2/PKGBUILD
+            fi
+            ;;
+
+    -d)     if [ $# -ne 2 ]; then
+                err_add_args
+            else
+                originaldir="$(pwd)"
+                mkdir $aur &> /dev/null
+                cd $aur
+                git clone https://aur.archlinux.org/$2.git
+                cd $originaldir
+            fi
+            ;;
+
+    -i)     if [ $# -ne 2 ]; then
+                err_add_args
+            else
+                originaldir="$(pwd)"
+                cd $aur/$2
+                makepkg -si
+                cd $originaldir
+            fi
+            ;;
+
+    -r)     if [ $# -ne 2 ]; then
+                err_add_args
+            else
+                rm -rf $aur/$2
+            fi
+            ;;
+
+
+
+    -s)     if [ $# -ne 2 ]; then
+                err_add_args
+            else
+                grep $2 /etc/aurlist
+            fi
+            ;;
+
+    *)      err_usage
+    esac
+fi
