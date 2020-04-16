@@ -5,7 +5,7 @@
 # options:
 #   -S              - synchronize list of aur packages. requires root.
 #   -a pkg_name     - audit a specific package's pkgbuild.
-#   -d pkg_name     - downloads a specific package from the aur to $aur.
+#   -d pkg_name     - downloads a specific package from the aur to $aur and shows the pkgbuild file.
 #   -i pkg_name     - install downloaded packages using the 'makepkg -si' command.
 #   -r pkg_name     - removes package from the ~/aur directory
 #   -s search_term  - list packages with the search team in the title.
@@ -56,6 +56,8 @@ else
                 mkdir $aur &> /dev/null
                 cd $aur
                 git clone https://aur.archlinux.org/$2.git
+                echo -e "\n\nPKGBUILD:\n"
+                more $aur/$2/PKGBUILD
                 cd $originaldir
             fi
             ;;
