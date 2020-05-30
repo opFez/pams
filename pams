@@ -9,6 +9,7 @@
 #   -i pkg_name     - install downloaded packages using the 'makepkg -si' command.
 #   -r pkg_name     - removes package from the ~/aur directory
 #   -s search_term  - list packages with the search team in the title.
+#   -u pkg_name     - updates a package.
 
 
 # error messages
@@ -57,7 +58,7 @@ else
                 cd $aur
                 git clone https://aur.archlinux.org/$2.git
                 echo -e "\n\nPKGBUILD:\n"
-                more $aur/$2/PKGBUILD
+                less $aur/$2/PKGBUILD
                 cd $originaldir
             fi
             ;;
@@ -87,6 +88,16 @@ else
                 grep $2 /etc/aurlist
             fi
             ;;
+
+    -u)     if [ $# -ne 2 ]; then
+                err_add_args
+            else
+                rm -rf $aur/$2
+                pams -d $2
+                pams -i $2
+            fi
+            ;;
+
 
     *)      err_usage
     esac
