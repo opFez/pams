@@ -3,7 +3,7 @@
 # pams - the posix aur management script
 # simple script for interacting with the aur
 # options:
-#   -S              - synchronize list of aur packages. requires root.
+#   -S              - synchronize list of aur packages.
 #   -a pkg_name     - audit a specific package's pkgbuild.
 #   -d pkg_name     - downloads a specific package from the aur to $aur and shows the pkgbuild file.
 #   -i pkg_name     - install downloaded packages using the 'makepkg -si' command.
@@ -33,14 +33,10 @@ else
     aur="$HOME/aur"
     case "$1" in
 
-    -S)     if [ "$(id -u)" -lt 1 ]; then
-                curl https://aur.archlinux.org/packages.gz \
-                --silent --output - \
-                | gunzip > /etc/aurlist
-            else
-                echo "please run as root"
-                exit 1
-            fi
+    -S)     mkdir "$aur" 2>/dev/null
+            curl https://aur.archlinux.org/packages.gz \
+            --silent --output - \
+            | gunzip > "$aur"/aurlist
             ;;
 
     -a)     if [ $# -ne 2 ]; then
@@ -54,7 +50,7 @@ else
                 err_add_args
             else
                 originaldir="$(pwd)"
-                mkdir "$aur"
+                mkdir "$aur" 2>/dev/null
                 cd "$aur" || exit
                 git clone https://aur.archlinux.org/"$2".git
                 less "$aur"/"$2"/PKGBUILD
@@ -79,12 +75,10 @@ else
             fi
             ;;
 
-
-
     -s)     if [ $# -ne 2 ]; then
                 err_add_args
             else
-                grep "$2" /etc/aurlist
+                grep "$2" "$aur"/aurlist
             fi
             ;;
 
@@ -96,7 +90,6 @@ else
                 pams -i "$2"
             fi
             ;;
-
 
     *)      err_usage
     esac
