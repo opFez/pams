@@ -27,13 +27,13 @@ err_add_args() {
 
 # main program
 
-if [ $# = 0 ]; then
+if [ $# -eq 0 ]; then
     err_usage
 else
     aur="$HOME/aur"
     case "$1" in
-            
-    -S)     if [ $EUID = 0 ]; then
+
+    -S)     if [ "$(id -u)" -lt 1 ]; then
                 curl https://aur.archlinux.org/packages.gz \
                 --silent --output - \
                 | gunzip > /etc/aurlist
@@ -46,7 +46,7 @@ else
     -a)     if [ $# -ne 2 ]; then
                 err_add_args
             else
-                less $aur/$2/PKGBUILD
+                less "$aur"/"$2"/PKGBUILD
             fi
             ;;
 
@@ -54,12 +54,11 @@ else
                 err_add_args
             else
                 originaldir="$(pwd)"
-                mkdir $aur &> /dev/null
-                cd $aur
-                git clone https://aur.archlinux.org/$2.git
-                echo -e "\n\nPKGBUILD:\n"
-                less $aur/$2/PKGBUILD
-                cd $originaldir
+                mkdir "$aur"
+                cd "$aur" || exit
+                git clone https://aur.archlinux.org/"$2".git
+                less "$aur"/"$2"/PKGBUILD
+                cd "$originaldir" || exit
             fi
             ;;
 
@@ -67,16 +66,16 @@ else
                 err_add_args
             else
                 originaldir="$(pwd)"
-                cd $aur/$2
+                                cd "$aur"/"$2" || exit
                 makepkg -si
-                cd $originaldir
+                cd "$originaldir" || exit
             fi
             ;;
 
     -r)     if [ $# -ne 2 ]; then
                 err_add_args
             else
-                rm -rf $aur/$2
+                rm -rf "{$aur/$2:?}"
             fi
             ;;
 
@@ -85,16 +84,16 @@ else
     -s)     if [ $# -ne 2 ]; then
                 err_add_args
             else
-                grep $2 /etc/aurlist
+                grep "$2" /etc/aurlist
             fi
             ;;
 
     -u)     if [ $# -ne 2 ]; then
                 err_add_args
             else
-                rm -rf $aur/$2
-                pams -d $2
-                pams -i $2
+                rm -rf "{$aur/$2:?}"
+                pams -d "$2"
+                pams -i "$2"
             fi
             ;;
 
